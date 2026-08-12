@@ -1,0 +1,6 @@
+---
+# Every play here runs from the repo venv (hack/setup-venv.sh), which is where the collections'
+# Python dependencies live. Without this a local connection discovers the system interpreter
+# instead, and modules that import a client library - kubernetes.core - fail.
+# ansible.cfg cannot express this: interpreter_python takes a literal path, not a magic var.
+ansible_python_interpreter: "{{ ansible_playbook_python }}"
