@@ -1,0 +1,26 @@
+# code: language=ansible
+---
+- name: K3s bootstrap
+  hosts: all
+  vars_files:
+    - ../../shared_vars/global.yml
+  force_handlers: true
+  tasks:
+    - name: Disable swap for current session
+      become: true
+      ansible.builtin.command:
+        cmd: swapoff -a
+      changed_when: false
+
+    - name: Disable swap permanently, persist reboots
+      become: true
+      when: ansible_facts['swaptotal_mb'] > 0
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+        replace: '#\1\2\3swap\4'
+        backup: true
+
+- name: Install k3s
+  tags: [k3s]
+  ansible.builtin.import_playbook: k3s.orchestration.site

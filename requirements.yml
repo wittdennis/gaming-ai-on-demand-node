@@ -1,0 +1,12 @@
+---
+roles: []
+
+collections:
+  - name: community.general
+    version: 13.3.0
+  - name: k3s.orchestration
+    type: git
+    version: 1.2.1
+    source: https://github.com/k3s-io/k3s-ansible.git
+  - name: ansible.utils
+    version: 6.0.3

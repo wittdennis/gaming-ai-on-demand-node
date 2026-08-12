@@ -1,0 +1,50 @@
+---
+k3s_version: v1.36.3+k3s1 # renovate: datasource=github-releases depName=k3s-io/k3s versioning=semver extractVersion=^(?<version>.*)\+k3s1$
+token: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  65306231666663383136633539653137656339633964643565386138353730396462383665623034
+  3862623030343431306433376236356130613561626638630a383739346234373738666134613262
+  34633765323231666332336237643364393434636435316433383434343633386630303765376432
+  3336333366666234330a353465303935373437316231636435333730343939373133316230663530
+  62323263333137373737623364326630303131316261663531343664363339333337376463376633
+  65306662653764653266646462633162663864303964356431333733366462393331306338396361
+  36356563373731333231373533313035323461336130613033386133373732356137376266633337
+  37666662386531383964
+api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+extra_server_args: ""
+extra_agent_args: ""
+api_port: 6443
+user_kubectl: true
+server_config_yaml: |
+  tls-san:
+    - "k8s.otter.derwitt.site"
+  disable:
+    - traefik
+  kube-apiserver-arg:
+    - "oidc-issuer-url=https://auth.derwitt.site/application/o/kubernetes/"
+    - "oidc-client-id=kubernetes"
+    - "oidc-groups-claim=groups"
+    - "oidc-username-claim=email"
+    - "oidc-signing-algs=ES512"
+    - "oidc-ca-file=/etc/ssl/certs/ISRG_Root_X1.pem"
+  kube-controller-manager-arg:
+    - "bind-address=0.0.0.0"
+  kube-proxy-arg:
+    - "metrics-bind-address=0.0.0.0"
+  kube-scheduler-arg:
+    - "bind-address=0.0.0.0"
+  etcd-expose-metrics: true
+
+# Optional vars
+# k3s_server_location: /var/lib/rancher/k3s
+# systemd_dir: /etc/systemd/system
+# extra_service_envs: [ 'ENV_VAR1=VALUE1', 'ENV_VAR2=VALUE2' ]
+# Manifests or Airgap should be either full paths or relative to the playbook directory.
+# List of locally available manifests to apply to the cluster, useful for PVCs or Traefik modifications.
+# extra_manifests: [ '/path/to/manifest1.yaml', '/path/to/manifest2.yaml' ]
+# airgap_dir: /tmp/k3s-airgap-images
+# user_kubectl: true, by default kubectl is symlinked and configured for use by ansible_user. Set to false to only kubectl via root user.
+# server_config_yaml:  |
+# This is now an inner yaml file. Maintain the indentation.
+# YAML here will be placed as the content of /etc/rancher/k3s/config.yaml
+# See https://docs.k3s.io/installation/configuration#configuration-file
