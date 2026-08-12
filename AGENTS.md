@@ -35,9 +35,10 @@ to anything from. Two rules follow, and both are load-bearing:
   **Known exception: `mogenius-operator`.** It holds a second credential (its API
   key) and maintains outbound websockets to `mogenius.com` that let the platform
   drive this cluster. That is remote control by an external service, which the
-  paragraph above otherwise rules out. It is accepted deliberately — the estate's
-  other clusters all run it and this one should be visible the same way — but it
-  is the boundary's one hole, so do not treat it as precedent for adding others.
+  paragraph above otherwise rules out. It is accepted deliberately: a machine that
+  is up only intermittently needs somewhere its state is visible, or nobody
+  notices it has been down for a week. It is the boundary's one hole, so do not
+  treat it as precedent for adding others.
 
 ## Layout
 
@@ -121,8 +122,9 @@ Secrets come from Vault via external-secrets. The `ClusterSecretStore` targets
 no `caProvider`. The ESO Vault token Secret itself is bootstrapped by Ansible —
 chicken-and-egg, nothing in the cluster can fetch it yet.
 
-Availability here is deliberately lax in the homelab spirit — single replicas, no
-failover, prefer the frugal option over the resilient one. **Security is the
+Availability here is deliberately lax — single replicas, no failover, prefer the
+frugal option over the resilient one. The machine is off most of the day by
+design, so resilience buys nothing. **Security is the
 exception and is never relaxed**: `restricted` pod-security, non-root, dropped
 capabilities, secrets from Vault.
 

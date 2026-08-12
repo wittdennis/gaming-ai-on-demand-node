@@ -1,0 +1,84 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ollama
+  namespace: ai-platform
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: ollama
+      version: 1.74.0
+      sourceRef:
+        kind: HelmRepository
+        name: otwld
+        namespace: ai-platform
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    image:
+      # image.tag is deliberately unset: with gpu.type amd the chart appends the `-rocm`
+      # suffix to the chart's appVersion, and overriding the tag disables that.
+      repository: docker.io/ollama/ollama
+
+    ollama:
+      mountPath: /data
+      # The chart's own GPU helper handles AMD directly, rendering an amd.com/gpu: 1 limit, so
+      # the resource request needs no manual plumbing here.
+      gpu:
+        enabled: true
+        type: amd
+        number: 1
+      models:
+        # Pinned by the model-selection spike (#914). Deliberately empty until then: a wrong
+        # guess here costs a slow multi-GB pull onto the PVC.
+        pull: []
+
+    extraEnv:
+      # Weights leave VRAM shortly after idle, so a game launched later is not fighting for
+      # memory that nothing is using.
+      - name: OLLAMA_KEEP_ALIVE
+        value: "5m"
+      - name: OLLAMA_FLASH_ATTENTION
+        value: "1"
+      - name: HOME
+        value: /data
+
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        # Above the 24 GB of VRAM: host RAM mirrors model buffers and the KV cache, and a
+        # tighter limit makes ollama disable mmap under memory pressure.
+        memory: 32Gi
+
+    persistentVolume:
+      enabled: true
+      size: 200Gi
+      # k3s default provisioner; the local SSD is the point, this tier is not portable.
+      storageClass: local-path
+      accessModes:
+        - ReadWriteOnce
+
+    # RWO volume, so the old pod must go before the new one starts.
+    updateStrategy:
+      type: Recreate

@@ -1,0 +1,25 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: node-feature-discovery
+  namespace: node-feature-discovery
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: node-feature-discovery
+      version: 0.19.0
+      sourceRef:
+        kind: HelmRepository
+        name: node-feature-discovery
+        namespace: node-feature-discovery
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  # Defaults are what is wanted: the built-in PCI source already whitelists display
+  # controllers, which is what produces the label the AMD plugin selects on.
+  values: {}

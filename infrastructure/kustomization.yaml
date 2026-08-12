@@ -6,4 +6,6 @@ buildMetadata: [originAnnotations]
 # external-secrets/ is deliberately absent: it is an earlier layer this one depends on.
 resources:
   - rbac
+  - node-feature-discovery
+  - amd-device-plugin
   - mogenius-operator
