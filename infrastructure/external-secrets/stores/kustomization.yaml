@@ -3,6 +3,4 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 buildMetadata: [originAnnotations]
 resources:
-  - infrastructure.yaml
-  - external-secrets-stores.yaml
-  - apps.yaml
+  - vault-backend-otter.yaml

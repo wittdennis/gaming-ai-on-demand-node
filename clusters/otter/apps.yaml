@@ -10,7 +10,7 @@ spec:
   prune: true
   timeout: 5m
   dependsOn:
-    - name: infrastructure
+    - name: external-secrets-stores
   sourceRef:
     kind: GitRepository
     name: jotunheim

@@ -48,14 +48,20 @@ stages — those put one component's pieces in three places.
 **Adding a component is one line**: a directory with its own `kustomization.yaml`,
 plus its name in `infrastructure/kustomization.yaml` or `apps/kustomization.yaml`.
 Kustomize recurses into it from there. Do **not** add a Flux `Kustomization` per
-component — the two in `clusters/otter/` cover everything, and `apps` already
-`dependsOn` `infrastructure`.
+component — the ones in `clusters/otter/` already cover every directory.
 
-Ordering _within_ a Kustomization is not guaranteed: a CR whose CRD arrives from a
-chart in the same build fails on the first apply and lands on the retry. That is
-expected and self-healing — `retryInterval` is set for it. Reach for a separate
-Flux `Kustomization` with `dependsOn` only if something genuinely cannot tolerate
-that, which so far nothing does.
+The one case that needs its own: **a CR whose CRD is installed by a chart in this
+repo.** `kustomize-controller` aborts the whole apply at the first object the API
+server does not recognise, and it aborts before reaching the `HelmRelease` that
+would install the CRD — so the retry hits the same error forever. This deadlocks;
+it does not converge, and `retryInterval` does not save it.
+
+Put such CRs in a subdirectory that the component's own `kustomization.yaml`
+deliberately does **not** list, and give that subdirectory a Flux `Kustomization`
+in `clusters/otter/` with `dependsOn` the layer that installs the chart.
+`external-secrets/stores/` is the worked example. Keeping the subdirectory inside
+the component is what stops this from growing back into a global
+`controllers/`+`configs/` split.
 
 The root `Kustomization`'s `path` is scoped to the manifest subtree.
 `kustomize-controller` must never walk `ansible/`.
