@@ -5,5 +5,5 @@ metadata:
   name: otwld
   namespace: ai-platform
 spec:
-  interval: 1h
+  interval: 10m
   url: https://otwld.github.io/ollama-helm

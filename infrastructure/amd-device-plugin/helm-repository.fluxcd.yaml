@@ -5,5 +5,5 @@ metadata:
   name: amd-device-plugin
   namespace: amd-device-plugin
 spec:
-  interval: 1h
+  interval: 10m
   url: https://rocm.github.io/k8s-device-plugin

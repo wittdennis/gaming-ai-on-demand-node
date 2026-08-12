@@ -6,5 +6,5 @@ metadata:
   namespace: mogenius-operator
 spec:
   type: oci
-  interval: 1h
+  interval: 10m
   url: oci://ghcr.io/valkey-io/valkey-helm

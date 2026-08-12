@@ -106,8 +106,14 @@ Bootstrap is `flux install` plus an Ansible-applied `GitRepository` and root
 `Kustomization` — deliberately **not** `flux bootstrap`, which commits the
 install manifests back and would need a write credential.
 
-Reconcile intervals are sized in minutes, not seconds. The box is off most of the
-day and nothing on it is latency-sensitive.
+Reconcile intervals are sized in minutes. The machine is off most of the day and
+nothing on it is latency-sensitive, so drift checks (`HelmRelease`) sit at `1h`.
+
+**Sources are the exception: `HelmRepository` polls at `10m`.** A failed chart
+pull retries on its source's interval, and that retry is the only path back — the
+`remediation.retries` on a release covers install failures, which happen later. At
+`1h`, one transient pull error outlasts a whole uptime window and holds every
+dependent layer behind it. Polling a source is cheap; being stuck is not.
 
 ### Pod Security
 

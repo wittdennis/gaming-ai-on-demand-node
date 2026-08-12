@@ -5,5 +5,5 @@ metadata:
   name: node-feature-discovery
   namespace: node-feature-discovery
 spec:
-  interval: 1h
+  interval: 10m
   url: https://kubernetes-sigs.github.io/node-feature-discovery/charts
