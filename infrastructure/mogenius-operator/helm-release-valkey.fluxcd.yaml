@@ -1,0 +1,51 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: mogenius-operator-valkey
+  namespace: mogenius-operator
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: valkey
+      version: 0.11.0
+      sourceRef:
+        kind: HelmRepository
+        name: valkey
+        namespace: mogenius-operator
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    image:
+      registry: "docker.io"
+      repository: valkey/valkey
+      pullPolicy: IfNotPresent
+      tag: "9.1.1" # renovate: datasource=docker depName=valkey/valkey versioning=docker
+    auth:
+      enabled: true
+      usersExistingSecret: mogenius-operator-valkey-credentials
+      aclUsers:
+        default:
+          permissions: "~* &* +@all"
+          passwordKey: default-password
+    replica:
+      enabled: false
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
+      runAsUser: 1000
+      runAsGroup: 1000
+      runAsNonRoot: true
+      privileged: false
+      capabilities:
+        drop:
+          - ALL
+    metrics:
+      enabled: false

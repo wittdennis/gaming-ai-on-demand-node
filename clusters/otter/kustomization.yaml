@@ -3,6 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 buildMetadata: [originAnnotations]
 resources:
-  - infrastructure.yaml
+  - external-secrets.yaml
   - external-secrets-stores.yaml
+  - infrastructure.yaml
   - apps.yaml

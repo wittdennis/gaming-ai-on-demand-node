@@ -1,0 +1,74 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: mogenius-operator
+  namespace: mogenius-operator
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: mogenius-operator
+      version: 2.27.1
+      sourceRef:
+        kind: HelmRepository
+        name: mogenius
+        namespace: mogenius-operator
+  dependsOn:
+    - name: mogenius-operator-valkey
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    # Upgrades come from Renovate against the pinned chart version, not from the operator
+    # upgrading itself out from under Flux.
+    features:
+      autoUpgrade:
+        enabled: false
+
+    valkey:
+      enabled: false
+    externalKeyValueStore:
+      enabled: true
+      host: mogenius-operator-valkey.mogenius-operator.svc.cluster.local
+      username: default
+      existingSecret:
+        name: mogenius-operator-valkey-credentials
+        key: default-password
+
+    global:
+      cluster_name: "Otter"
+      apiKeySecret:
+        secretName: mogenius-operator-api-secret
+        secretKey: api-key
+    envVars:
+      MO_API_SERVER: "wss://k8s-ws.mogenius.com/ws"
+      MO_EVENT_SERVER: "wss://k8s-dispatcher.mogenius.com/ws"
+
+    # No Prometheus operator on this cluster.
+    metrics:
+      enabled: false
+
+    podSecurityContext:
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+      seccompProfile:
+        type: RuntimeDefault
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+      seccompProfile:
+        type: RuntimeDefault

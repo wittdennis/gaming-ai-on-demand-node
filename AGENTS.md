@@ -32,6 +32,13 @@ to anything from. Two rules follow, and both are load-bearing:
   secret comes from Vault at runtime; the Vault token itself is the one exception
   and lives `ansible-vault`-encrypted in `group_vars`.
 
+  **Known exception: `mogenius-operator`.** It holds a second credential (its API
+  key) and maintains outbound websockets to `mogenius.com` that let the platform
+  drive this cluster. That is remote control by an external service, which the
+  paragraph above otherwise rules out. It is accepted deliberately — the estate's
+  other clusters all run it and this one should be visible the same way — but it
+  is the boundary's one hole, so do not treat it as precedent for adding others.
+
 ## Layout
 
 ```
@@ -50,18 +57,28 @@ plus its name in `infrastructure/kustomization.yaml` or `apps/kustomization.yaml
 Kustomize recurses into it from there. Do **not** add a Flux `Kustomization` per
 component — the ones in `clusters/otter/` already cover every directory.
 
-The one case that needs its own: **a CR whose CRD is installed by a chart in this
-repo.** `kustomize-controller` aborts the whole apply at the first object the API
-server does not recognise, and it aborts before reaching the `HelmRelease` that
-would install the CRD — so the retry hits the same error forever. This deadlocks;
-it does not converge, and `retryInterval` does not save it.
+The rule that shapes the layers: **a CR whose CRD is installed by a chart in this
+repo cannot be in the same build as that chart.** `kustomize-controller` aborts
+the whole apply at the first object the API server does not recognise, and it
+aborts before reaching the `HelmRelease` that would install the CRD — so the retry
+hits the same error forever. This deadlocks; it does not converge, and
+`retryInterval` does not save it.
 
-Put such CRs in a subdirectory that the component's own `kustomization.yaml`
-deliberately does **not** list, and give that subdirectory a Flux `Kustomization`
-in `clusters/otter/` with `dependsOn` the layer that installs the chart.
-`external-secrets/stores/` is the worked example. Keeping the subdirectory inside
-the component is what stops this from growing back into a global
-`controllers/`+`configs/` split.
+`external-secrets` is therefore its own layer, ahead of everything, because
+`ExternalSecret` and `ClusterSecretStore` are its CRDs and components use them
+freely. `infrastructure/kustomization.yaml` deliberately does not list it. The
+chain is:
+
+```
+external-secrets → external-secrets-stores → infrastructure → apps
+```
+
+Anything a component needs is available by the time `infrastructure` runs, so a
+new component is still just a directory plus one line. Only add another layer if
+a component ships CRDs that a *different* component's CRs consume.
+
+Note this puts `rbac` behind `external-secrets`. Acceptable: the break-glass path
+is the root-owned kubeconfig on the box, not the OIDC bindings.
 
 The root `Kustomization`'s `path` is scoped to the manifest subtree.
 `kustomize-controller` must never walk `ansible/`.
