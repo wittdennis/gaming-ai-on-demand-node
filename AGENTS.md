@@ -51,6 +51,11 @@ The root `Kustomization`'s `path` is scoped to the manifest subtree.
 **One YAML resource per file**, named after the resource it holds. No
 multi-document `---` files.
 
+Files carrying a chart or image version get the **`.fluxcd.yaml`** extension —
+that is what Renovate matches on, and it sees nothing else. A `HelmRelease` and
+the `HelmRepository` it sources from must *both* use it, or the chart's registry
+cannot be resolved and the release goes untracked.
+
 ### Flux
 
 Controllers are trimmed to `source-controller`, `kustomize-controller` and

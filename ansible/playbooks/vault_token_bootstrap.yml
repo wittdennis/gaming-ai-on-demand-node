@@ -1,0 +1,43 @@
+# code: language=ansible
+---
+# Chicken-and-egg: ESO needs a Vault credential to fetch secrets, so this one cannot itself come
+# from Vault. It is the only secret Ansible puts into the cluster.
+- name: Vault token bootstrap
+  hosts: server
+  environment:
+    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/localhost/config"
+  tasks:
+    - name: Require the Vault token
+      ansible.builtin.assert:
+        that:
+          - vault_otter_token is defined
+          - vault_otter_token | length > 0
+        fail_msg: >-
+          vault_otter_token is unset. Issue a read-only Vault token scoped to this cluster's KV
+          mount, then add it to group_vars/k3s_cluster/vault.yml with
+          `ansible-vault encrypt_string --stdin-name vault_otter_token`.
+
+    - name: Wait for the external-secrets namespace
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Namespace
+        name: "{{ eso_namespace }}"
+      register: eso_ns
+      until: eso_ns.resources | length > 0
+      retries: 30
+      delay: 10
+
+    - name: Create the Vault token Secret
+      no_log: true
+      kubernetes.core.k8s:
+        state: present
+        apply: true
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ vault_token_secret_name }}"
+            namespace: "{{ eso_namespace }}"
+          type: Opaque
+          stringData:
+            token: "{{ vault_otter_token }}"
