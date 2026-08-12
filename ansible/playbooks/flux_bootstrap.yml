@@ -4,8 +4,8 @@
   hosts: server
   environment:
     # Both the flux CLI and kubernetes.core read this.
-    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/localhost/config"
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+    KUBECONFIG: "{{ kubeconfig_path }}"
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts['env']['PATH'] }}"
   tasks:
     # Homebrew refuses to run as root, so these two are deliberately unprivileged.
     - name: Tap the Flux formula repository

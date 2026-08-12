@@ -5,7 +5,7 @@
 - name: Vault token bootstrap
   hosts: server
   environment:
-    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/localhost/config"
+    KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
     - name: Require the Vault token
       ansible.builtin.assert:
