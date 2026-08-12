@@ -10,7 +10,7 @@ spec:
   prune: true
   timeout: 5m
   dependsOn:
-    - name: infrastructure-configs
+    - name: infrastructure
   sourceRef:
     kind: GitRepository
     name: jotunheim

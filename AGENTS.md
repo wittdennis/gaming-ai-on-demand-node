@@ -35,11 +35,27 @@ to anything from. Two rules follow, and both are load-bearing:
 ## Layout
 
 ```
-ansible/          host config, day-0 (see below)
-clusters/otter/   Flux entry point: the root Kustomizations
-infrastructure/   cluster services (ESO, AMD device plugin, ...)
-apps/             workloads (Ollama, the bearer-token proxy)
+ansible/                            host config, day-0 (see below)
+clusters/otter/                     the two Flux Kustomizations: infrastructure, apps
+infrastructure/<component>/         cluster services (external-secrets, amd-device-plugin, ...)
+apps/<component>/                   workloads (ollama, the bearer-token proxy)
 ```
+
+**One directory per component**, named after the component, holding everything that
+belongs to it. Not grouped by kind, and not split into `controllers/`+`configs/`
+stages — those put one component's pieces in three places.
+
+**Adding a component is one line**: a directory with its own `kustomization.yaml`,
+plus its name in `infrastructure/kustomization.yaml` or `apps/kustomization.yaml`.
+Kustomize recurses into it from there. Do **not** add a Flux `Kustomization` per
+component — the two in `clusters/otter/` cover everything, and `apps` already
+`dependsOn` `infrastructure`.
+
+Ordering _within_ a Kustomization is not guaranteed: a CR whose CRD arrives from a
+chart in the same build fails on the first apply and lands on the retry. That is
+expected and self-healing — `retryInterval` is set for it. Reach for a separate
+Flux `Kustomization` with `dependsOn` only if something genuinely cannot tolerate
+that, which so far nothing does.
 
 The root `Kustomization`'s `path` is scoped to the manifest subtree.
 `kustomize-controller` must never walk `ansible/`.
@@ -53,7 +69,7 @@ multi-document `---` files.
 
 Files carrying a chart or image version get the **`.fluxcd.yaml`** extension —
 that is what Renovate matches on, and it sees nothing else. A `HelmRelease` and
-the `HelmRepository` it sources from must *both* use it, or the chart's registry
+the `HelmRepository` it sources from must _both_ use it, or the chart's registry
 cannot be resolved and the release goes untracked.
 
 ### Flux
