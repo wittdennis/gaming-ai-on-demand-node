@@ -1,0 +1,25 @@
+---
+# CLI is only ever asked to render manifests, so it is unpinned deliberately: `brew upgrade`
+# carries it along with everything else on the box.
+flux_formula: fluxcd/tap/flux
+flux_tap: fluxcd/tap
+
+flux_namespace: flux-system
+
+# notification-controller and the image-automation controllers are deliberately absent: nothing
+# alerts on a box that is off most of the day, and image tags are pinned in git.
+flux_components:
+  - source-controller
+  - kustomize-controller
+  - helm-controller
+
+# The repo is public, so this clones anonymously and the box carries no git credential at all.
+flux_git_url: https://git.derwitt.site/homelab/jotunheim.git
+flux_git_branch: main
+
+# Scoped to the manifest subtree. ansible/ shares this repo and kustomize-controller must never
+# walk it.
+flux_git_path: ./clusters/otter
+
+# Minutes, not seconds: the box is off most of the day and nothing here is latency-sensitive.
+flux_interval: 10m

@@ -19,12 +19,18 @@ to anything from. Two rules follow, and both are load-bearing:
   one. Genuinely common bits get **copied** in — the cost (a fix elsewhere does
   not propagate) is accepted deliberately, because one clone has to be the
   complete description of the machine.
-- **Credentials are outbound-only and read-only.** This machine holds exactly a
-  read-only deploy key for this repo and a read-only, path-scoped Vault token.
-  Never add a write credential, a credential for any other repository, or a
-  kubeconfig for any other cluster — and never expose an inbound path that lets
-  something outside drive this cluster. Full compromise of the box must yield
-  nothing but read of this repo and one Vault path.
+- **Credentials are outbound-only and read-only.** This machine holds exactly one
+  credential: a read-only, path-scoped Vault token. This repo is public, so Flux
+  clones it anonymously over HTTPS and there is no git credential to steal — keep
+  it that way rather than reintroducing a deploy key. Never add a write
+  credential, a credential for another repository, or a kubeconfig for another
+  cluster, and never expose an inbound path that lets something outside drive
+  this cluster. Full compromise of the box must yield one Vault path and nothing
+  else.
+
+  It follows that **nothing secret may be committed here**, in either half. Every
+  secret comes from Vault at runtime; the Vault token itself is the one exception
+  and lives `ansible-vault`-encrypted in `group_vars`.
 
 ## Layout
 
@@ -96,6 +102,9 @@ auto-suspend. Flux owns day-2.
   `ansible.cfg` sets it as the default inventory.
 - `hack/setup-venv.sh` creates `.venv` and installs Galaxy content into the
   gitignored `.ansible/` cache.
+- Secret material in `group_vars` is `ansible-vault`-encrypted in place
+  (`ansible-vault encrypt_string --stdin-name <var>`). Never commit it in the
+  clear, and mark the tasks that consume it `no_log: true`.
 - **Never set `become: true` at play level "just in case."** Scope it per-task.
   The same applies to `- role:` entries: call-site `become` escalates every task
   inside the role, not just the ones that need it.

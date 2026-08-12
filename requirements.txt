@@ -8,3 +8,6 @@ jsonschema==4.26.0
 textfsm==2.1.0
 ttp==0.10.1
 xmltodict==1.0.4
+
+# kubernetes.core collection's client
+kubernetes==36.0.3

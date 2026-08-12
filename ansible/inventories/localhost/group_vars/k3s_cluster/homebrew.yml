@@ -1,0 +1,4 @@
+---
+# Linuxbrew's shared prefix. Ansible's non-interactive shell does not source the shell profile
+# that would normally put this on PATH.
+homebrew_prefix: /home/linuxbrew/.linuxbrew

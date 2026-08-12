@@ -1,0 +1,87 @@
+# code: language=ansible
+---
+- name: Flux bootstrap
+  hosts: server
+  environment:
+    # Both the flux CLI and kubernetes.core read this.
+    KUBECONFIG: "{{ ansible_env.HOME }}/.kube/localhost/config"
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+  tasks:
+    # Homebrew refuses to run as root, so these two are deliberately unprivileged.
+    - name: Tap the Flux formula repository
+      community.general.homebrew_tap:
+        name: "{{ flux_tap }}"
+        state: present
+        path: "{{ homebrew_prefix }}/bin"
+
+    - name: Install the flux CLI
+      community.general.homebrew:
+        name: "{{ flux_formula }}"
+        state: present
+        path: "{{ homebrew_prefix }}/bin"
+
+    # --export renders to stdout without touching the cluster, so the CLI only ever renders and
+    # the cluster is reached solely through kubernetes.core.
+    - name: Render the Flux component manifests
+      ansible.builtin.command:
+        cmd: >-
+          flux install --export
+          --namespace={{ flux_namespace }}
+          --components={{ flux_components | join(',') }}
+      register: flux_manifest
+      changed_when: false
+
+    - name: Apply the Flux components
+      kubernetes.core.k8s:
+        definition: "{{ flux_manifest.stdout }}"
+        state: present
+        apply: true
+
+    - name: Wait for the Flux CRDs to be established
+      kubernetes.core.k8s_info:
+        api_version: apiextensions.k8s.io/v1
+        kind: CustomResourceDefinition
+        name: "{{ item }}"
+      register: flux_crd
+      until: flux_crd.resources | length > 0
+      retries: 30
+      delay: 2
+      loop:
+        - gitrepositories.source.toolkit.fluxcd.io
+        - kustomizations.kustomize.toolkit.fluxcd.io
+
+    # Applied here rather than by `flux bootstrap`, which would commit the install manifests back
+    # into the repo and so needs a write credential.
+    - name: Create the GitRepository
+      kubernetes.core.k8s:
+        state: present
+        apply: true
+        definition:
+          apiVersion: source.toolkit.fluxcd.io/v1
+          kind: GitRepository
+          metadata:
+            name: jotunheim
+            namespace: "{{ flux_namespace }}"
+          spec:
+            interval: "{{ flux_interval }}"
+            url: "{{ flux_git_url }}"
+            ref:
+              branch: "{{ flux_git_branch }}"
+
+    - name: Create the root Kustomization
+      kubernetes.core.k8s:
+        state: present
+        apply: true
+        definition:
+          apiVersion: kustomize.toolkit.fluxcd.io/v1
+          kind: Kustomization
+          metadata:
+            name: otter
+            namespace: "{{ flux_namespace }}"
+          spec:
+            interval: "{{ flux_interval }}"
+            path: "{{ flux_git_path }}"
+            prune: true
+            sourceRef:
+              kind: GitRepository
+              name: jotunheim

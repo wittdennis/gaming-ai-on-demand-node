@@ -10,3 +10,5 @@ collections:
     source: https://github.com/k3s-io/k3s-ansible.git
   - name: ansible.utils
     version: 6.1.0
+  - name: kubernetes.core
+    version: 6.5.0
