@@ -2,8 +2,6 @@
 ---
 - name: K3s bootstrap
   hosts: all
-  vars_files:
-    - ../../shared_vars/global.yml
   force_handlers: true
   tasks:
     - name: Disable swap for current session

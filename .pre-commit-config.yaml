@@ -1,0 +1,24 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-case-conflict
+      # --unsafe: syntax check only. Without it the loader tries to construct
+      # ansible-vault's `!vault` tag and fails on the group_vars.
+      - id: check-yaml
+        args: [--unsafe]
+      - id: end-of-file-fixer
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        files: \.(yaml|yml|yamllint)$
+
+  - repo: https://github.com/ansible-community/ansible-lint.git
+    rev: v26.8.0
+    hooks:
+      - id: ansible-lint
+        files: ^ansible/.*\.(yaml|yml)$
+        verbose: true

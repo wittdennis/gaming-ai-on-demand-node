@@ -20,6 +20,7 @@ server_config_yaml: |
     - "k8s.otter.derwitt.site"
   disable:
     - traefik
+    - metrics-server
   kube-apiserver-arg:
     - "oidc-issuer-url=https://auth.derwitt.site/application/o/kubernetes/"
     - "oidc-client-id=kubernetes"

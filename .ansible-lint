@@ -1,0 +1,11 @@
+# code: language=yaml
+---
+# Only ansible/ is Ansible. The Flux tree is Kubernetes manifests that ansible-lint would
+# otherwise try to read as playbooks.
+exclude_paths:
+  - .forgejo/
+  - .ansible/
+  - .venv/
+  - clusters/
+  - infrastructure/
+  - apps/

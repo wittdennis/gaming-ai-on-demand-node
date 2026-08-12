@@ -1,0 +1,121 @@
+# jotunheim
+
+One repo, one machine: **otter**, a gaming workstation (CachyOS, Radeon 7900 XTX
+24 GB, 64 GB RAM) that serves opportunistic LLM inference while it is idle. It
+runs a single-node k3s cluster, also called `otter`, reconciled by an in-cluster
+Flux from this repo.
+
+This repo holds **both halves** of the machine — `ansible/` for the host and a
+Flux manifest tree for the workloads — so one clone rebuilds it end to end.
+
+## Self-contained by construction
+
+Gaming is the primary workload and always wins; inference is the scavenger. The
+box runs games and mods, so it is treated as the least-trusted machine it talks
+to anything from. Two rules follow, and both are load-bearing:
+
+- **Everything about this machine lives here.** Do not factor host config,
+  manifests or roles out into a shared repository, and do not add a dependency on
+  one. Genuinely common bits get **copied** in — the cost (a fix elsewhere does
+  not propagate) is accepted deliberately, because one clone has to be the
+  complete description of the machine.
+- **Credentials are outbound-only and read-only.** This machine holds exactly a
+  read-only deploy key for this repo and a read-only, path-scoped Vault token.
+  Never add a write credential, a credential for any other repository, or a
+  kubeconfig for any other cluster — and never expose an inbound path that lets
+  something outside drive this cluster. Full compromise of the box must yield
+  nothing but read of this repo and one Vault path.
+
+## Layout
+
+```
+ansible/          host config, day-0 (see below)
+clusters/otter/   Flux entry point: the root Kustomizations
+infrastructure/   cluster services (ESO, AMD device plugin, ...)
+apps/             workloads (Ollama, the bearer-token proxy)
+```
+
+The root `Kustomization`'s `path` is scoped to the manifest subtree.
+`kustomize-controller` must never walk `ansible/`.
+
+## Conventions
+
+### Manifest layout
+
+**One YAML resource per file**, named after the resource it holds. No
+multi-document `---` files.
+
+### Flux
+
+Controllers are trimmed to `source-controller`, `kustomize-controller` and
+`helm-controller`. Do not add `notification-controller` or the image-automation
+controllers — nothing here has a job for them.
+
+Bootstrap is `flux install` plus an Ansible-applied `GitRepository` and root
+`Kustomization` — deliberately **not** `flux bootstrap`, which commits the
+install manifests back and would need a write credential.
+
+Reconcile intervals are sized in minutes, not seconds. The box is off most of the
+day and nothing on it is latency-sensitive.
+
+### Pod Security
+
+New namespaces are `pod-security.kubernetes.io/enforce: restricted` — **always**.
+Only relax below `restricted` if testing actually proves it cannot work. The AMD
+device plugin DaemonSet is the expected exception; workload pods are not.
+
+### Secrets
+
+Secrets come from Vault via external-secrets. The `ClusterSecretStore` targets
+`https://vault.derwitt.site`, which presents a publicly-trusted cert, so it needs
+no `caProvider`. The ESO Vault token Secret itself is bootstrapped by Ansible —
+chicken-and-egg, nothing in the cluster can fetch it yet.
+
+Availability here is deliberately lax in the homelab spirit — single replicas, no
+failover, prefer the frugal option over the resilient one. **Security is the
+exception and is never relaxed**: `restricted` pod-security, non-root, dropped
+capabilities, secrets from Vault.
+
+### Endpoint auth
+
+Ollama has no auth of its own and must never listen on the LAN directly. The
+bearer-token reverse proxy in front of its Service is what gets exposed, and it
+stays in-cluster so it is GitOps-managed rather than hand-rolled host config.
+
+### Images
+
+Reference images by **FQDN**. **Never** use Bitnami images.
+
+## Ansible
+
+`ansible/` owns day-0: k3s, `flux install` and the two sync objects, the deploy
+key, the Vault token Secret, `nftables`, the gamemode preempt hook, WoL and idle
+auto-suspend. Flux owns day-2.
+
+- Inventory is a single host, `localhost` — the playbooks run **on otter**.
+  `ansible.cfg` sets it as the default inventory.
+- `hack/setup-venv.sh` creates `.venv` and installs Galaxy content into the
+  gitignored `.ansible/` cache.
+- **Never set `become: true` at play level "just in case."** Scope it per-task.
+  The same applies to `- role:` entries: call-site `become` escalates every task
+  inside the role, not just the ones that need it.
+
+### Gaming preempts by stopping k3s
+
+The gamemode hook stops k3s wholesale. It must **not** scale workloads down —
+`kustomize-controller` reverts a `replicas: 0` on its next pass, so scale-to-zero
+is a fight with the reconciler rather than a mechanism. Stopping k3s also takes
+containerd and the Flux controllers out while gaming.
+
+Connection-refused is therefore the intended failure mode of the inference
+endpoint, not a bug. Callers are expected to fast-fail and fall back; do not add
+retries, hold-open behaviour or availability machinery here to hide it.
+
+A short `OLLAMA_KEEP_ALIVE` covers the idle-but-not-gaming case, so weights leave
+VRAM without stopping the cluster.
+
+## Lint gate
+
+`yamllint` and `ansible-lint`, run by pre-commit and by `.forgejo/workflows/pr.yaml`.
+`ansible-lint` is scoped to `ansible/` — the Flux tree is Kubernetes manifests, not
+playbooks.

@@ -1,0 +1,4 @@
+.venv
+.ansible
+*.vault
+.DS_Store
