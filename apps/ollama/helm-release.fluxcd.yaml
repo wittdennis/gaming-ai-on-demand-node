@@ -50,6 +50,12 @@ spec:
       # being excluded.
       - name: ROCR_VISIBLE_DEVICES
         value: "GPU-0f8c49f6b81ea5b0"
+      # Left unset, this is chosen from whatever VRAM happens to be free at load time, so the
+      # context would shrink silently on a day the desktop is holding more. 32k is the largest
+      # value both models keep entirely on the GPU at full speed; 64k costs a partial spill.
+      # Callers wanting more can raise num_ctx per request and take that trade knowingly.
+      - name: OLLAMA_CONTEXT_LENGTH
+        value: "32768"
       # Weights leave VRAM shortly after idle, so a game launched later is not fighting for
       # memory that nothing is using.
       - name: OLLAMA_KEEP_ALIVE
