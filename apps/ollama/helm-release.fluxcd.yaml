@@ -28,18 +28,28 @@ spec:
 
     ollama:
       mountPath: /data
-      # The chart's own GPU helper handles AMD directly, rendering an amd.com/gpu: 1 limit, so
-      # the resource request needs no manual plumbing here.
+      # The chart's own GPU helper handles AMD directly, rendering an amd.com/gpu limit, so the
+      # resource request needs no manual plumbing here.
+      #
+      # The node advertises two AMD GPUs, the discrete card and the CPU's iGPU, and kubelet
+      # gives no ordering guarantee about which one a request for a single device gets.
+      # Claiming both keeps the discrete card in the set; ROCR_VISIBLE_DEVICES below decides
+      # which is used. The claim is bookkeeping, so the desktop keeps both either way.
       gpu:
         enabled: true
         type: amd
-        number: 1
+        number: 2
       models:
         # Pinned by the model-selection spike (#914). Deliberately empty until then: a wrong
         # guess here costs a slow multi-GB pull onto the PVC.
         pull: []
 
     extraEnv:
+      # The 7900 XTX by KFD unique id, so it survives a reordering of device indices. The iGPU
+      # reports an id of 0x0 and cannot be addressed this way, which is fine: it is the one
+      # being excluded.
+      - name: ROCR_VISIBLE_DEVICES
+        value: "GPU-0f8c49f6b81ea5b0"
       # Weights leave VRAM shortly after idle, so a game launched later is not fighting for
       # memory that nothing is using.
       - name: OLLAMA_KEEP_ALIVE
