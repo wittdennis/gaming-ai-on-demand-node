@@ -1,0 +1,67 @@
+# code: language=ansible
+---
+- name: Require an allow-list for the endpoint
+  ansible.builtin.assert:
+    that: endpoint_firewall_ollama_allowed_sources | length > 0
+    fail_msg: >-
+      endpoint_firewall_ollama_allowed_sources is empty. Set it to the addresses that consume the
+      inference endpoint, in group_vars. Left unset the endpoint is unreachable, which is the
+      safe direction but not a working one.
+
+- name: Install ufw
+  become: true
+  community.general.pacman:
+    name: ufw
+    state: present
+
+# Ordered before the default policy on purpose: with deny-incoming applied first and no ssh
+# rule, a remote run would sever its own connection partway through.
+- name: Permit ssh
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "{{ endpoint_firewall_ssh_port }}"
+    proto: tcp
+    from_ip: "{{ item }}"
+  loop: "{{ endpoint_firewall_ssh_allowed_sources }}"
+
+- name: Deny inbound traffic by default
+  become: true
+  when: endpoint_firewall_manage_defaults
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: Allow outbound traffic by default
+  become: true
+  when: endpoint_firewall_manage_defaults
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Permit the inference endpoint from its consumers
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "{{ endpoint_firewall_ollama_port }}"
+    proto: "{{ endpoint_firewall_ollama_proto }}"
+    from_ip: "{{ item }}"
+  loop: "{{ endpoint_firewall_ollama_allowed_sources }}"
+
+# Scoped deliberately. The k3s collection has a task that opens this port with no source
+# restriction at all; it currently does not fire, because it looks for a service named `ufw`
+# while systemd reports `ufw.service`. If that is ever corrected upstream, an unscoped rule will
+# appear alongside this one and quietly widen the API to everything that can reach the machine.
+- name: Permit the Kubernetes API from the same network
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "{{ endpoint_firewall_k8s_api_port }}"
+    proto: tcp
+    from_ip: "{{ item }}"
+  loop: "{{ endpoint_firewall_k8s_api_allowed_sources }}"
+
+- name: Enable ufw
+  become: true
+  community.general.ufw:
+    state: enabled

@@ -1,0 +1,9 @@
+# code: language=ansible
+---
+# Everything on the machine that is not a Kubernetes manifest and not part of bringing the
+# cluster up. Flux owns what runs inside the cluster; this owns the machine around it.
+- name: Configure the otter host
+  hosts: server
+  roles:
+    - role: endpoint_firewall
+    - role: gaming_preempt

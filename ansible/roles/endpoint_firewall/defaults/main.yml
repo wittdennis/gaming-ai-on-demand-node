@@ -1,0 +1,22 @@
+---
+# Addresses permitted to reach the inference endpoint. Deliberately empty: an unset allow-list
+# should leave the endpoint unreachable rather than open. Accepts anything ufw takes as a
+# source, so single addresses or CIDRs, IPv4 or IPv6.
+endpoint_firewall_ollama_allowed_sources: []
+endpoint_firewall_ollama_port: 11434
+endpoint_firewall_ollama_proto: tcp
+
+# The Kubernetes API, so the cluster can be driven without an ssh session first. Empty means
+# the rule is not managed here.
+endpoint_firewall_k8s_api_port: 6443
+endpoint_firewall_k8s_api_allowed_sources: []
+
+# Locking the account out of a machine that is not always on, and whose console is a game, is
+# worse than a firewall gap. This rule is applied before anything tightens the defaults.
+endpoint_firewall_ssh_port: 22
+endpoint_firewall_ssh_allowed_sources:
+  - any
+
+# The base policy is set up by hand on this machine, so the role leaves it alone unless asked.
+# Turning this on makes a rebuild reproduce the policy rather than inherit whatever is there.
+endpoint_firewall_manage_defaults: false

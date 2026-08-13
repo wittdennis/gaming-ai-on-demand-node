@@ -1,0 +1,65 @@
+# code: language=ansible
+---
+# The hook is only ever invoked by gamemoded, so the package is a dependency of this role
+# rather than something assumed to be on the machine.
+- name: Install gamemode
+  become: true
+  community.general.pacman:
+    name: "{{ gaming_preempt_packages }}"
+    state: present
+
+- name: Install the k3s pause and resume scripts
+  become: true
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "{{ gaming_preempt_bin_dir }}/{{ item }}"
+    owner: root
+    group: root
+    # Root-owned and not writable by the account allowed to run them under sudo, which is what
+    # keeps the sudoers rule from becoming a way to run anything as root.
+    mode: "0755"
+  loop:
+    - otter-k3s-pause
+    - otter-k3s-resume
+
+- name: Permit the gaming account to run them
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/otter-gaming-preempt
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -csf %s
+    content: |
+      {{ gaming_preempt_user }} ALL=(root) NOPASSWD: {{ gaming_preempt_bin_dir }}/otter-k3s-pause, {{ gaming_preempt_bin_dir }}/otter-k3s-resume
+
+- name: Hook the scripts into gamemode
+  become: true
+  # ini_file rather than a template: this file carries unrelated gamemode settings that are not
+  # ours to own.
+  community.general.ini_file:
+    path: /etc/gamemode.ini
+    section: custom
+    option: "{{ item.option }}"
+    value: "/usr/bin/sudo -n {{ gaming_preempt_bin_dir }}/{{ item.script }}"
+    owner: root
+    group: root
+    mode: "0644"
+    create: true
+  loop:
+    - { option: start, script: otter-k3s-pause }
+    - { option: end, script: otter-k3s-resume }
+
+- name: Give the hooks long enough to finish
+  become: true
+  # gamemode kills custom scripts at script_timeout, 10s by default. Draining pods and tearing
+  # down container shims runs past that, and a killed pause script leaves the GPU held.
+  community.general.ini_file:
+    path: /etc/gamemode.ini
+    section: custom
+    option: script_timeout
+    value: "{{ gaming_preempt_script_timeout }}"
+    owner: root
+    group: root
+    mode: "0644"
+    create: true

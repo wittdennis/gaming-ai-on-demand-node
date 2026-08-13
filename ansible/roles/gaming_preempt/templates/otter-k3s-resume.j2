@@ -1,0 +1,6 @@
+#!/bin/sh
+# Invoked by gamemode when the last game exits. Flux reconciles the workloads back on its own,
+# so nothing here needs to know what was running.
+set -eu
+
+systemctl start {{ gaming_preempt_service }}

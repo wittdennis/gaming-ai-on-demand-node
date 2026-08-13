@@ -1,0 +1,11 @@
+#!/bin/sh
+# Hands the GPU back to the game. Invoked by gamemode when a game starts.
+set -eu
+
+systemctl stop {{ gaming_preempt_service }} || true
+
+# Stopping the supervisor does not reap running containers, and a container holding the GPU
+# keeps its VRAM. Killing them is the part that frees the card.
+if [ -x {{ gaming_preempt_killall }} ]; then
+	{{ gaming_preempt_killall }}
+fi

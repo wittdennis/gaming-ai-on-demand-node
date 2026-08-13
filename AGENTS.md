@@ -204,6 +204,8 @@ Flux owns day-2.
 
 ### Gaming preempts by stopping k3s
 
+Mechanism, gotchas and how to verify it: `docs/gaming-preemption.md`.
+
 The gamemode hook stops k3s wholesale. It must **not** scale workloads down —
 `kustomize-controller` reverts a `replicas: 0` on its next pass, so scale-to-zero
 is a fight with the reconciler rather than a mechanism. Stopping k3s also takes

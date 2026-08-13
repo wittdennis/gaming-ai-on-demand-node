@@ -1,0 +1,14 @@
+---
+# The account that launches games, and so the one gamemode runs its hooks as.
+gaming_preempt_user: "{{ ansible_facts['user_id'] }}"
+gaming_preempt_service: k3s
+# lib32-gamemode is what 32-bit titles preload, and needs the multilib repository; drop it if
+# multilib is off and nothing 32-bit runs here.
+gaming_preempt_packages:
+  - gamemode
+  - lib32-gamemode
+# Provided by the k3s installer. Stopping the unit alone leaves container shims running, which
+# keeps the GPU allocated; this is what actually tears them down.
+gaming_preempt_killall: /usr/local/bin/k3s-killall.sh
+gaming_preempt_bin_dir: /usr/local/bin
+gaming_preempt_script_timeout: 60
