@@ -40,9 +40,10 @@ spec:
         type: amd
         number: 2
       models:
-        # Pinned by the model-selection spike (#914). Deliberately empty until then: a wrong
-        # guess here costs a slow multi-GB pull onto the PVC.
-        pull: []
+        pull:
+          - qwen3-coder:30b
+
+          - qwen3.6:27b
 
     extraEnv:
       # The 7900 XTX by KFD unique id, so it survives a reordering of device indices. The iGPU
