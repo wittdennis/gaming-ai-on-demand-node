@@ -1,0 +1,25 @@
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	log
+
+	# route runs these in written order; bare handlers would be reordered by directive type.
+	route {
+		@health path /healthz
+		respond @health "ok" 200
+
+		# {$VAR} substitutes at parse time from the environment, so the token reaches Caddy
+		# without being written to a ConfigMap.
+		@unauthorized not header Authorization "Bearer {$OLLAMA_PROXY_TOKEN}"
+		respond @unauthorized 401
+
+		reverse_proxy ollama:11434 {
+			# Ollama streams NDJSON rather than text/event-stream, which Caddy's auto-flush
+			# heuristic does not recognise; without this, tokens arrive in batches.
+			flush_interval -1
+		}
+	}
+}

@@ -140,6 +140,25 @@ Ollama has no auth of its own and must never listen on the LAN directly. The
 bearer-token reverse proxy in front of its Service is what gets exposed, and it
 stays in-cluster so it is GitOps-managed rather than hand-rolled host config.
 
+`ollama-proxy` is plain manifests: a Caddy Deployment whose Caddyfile compares
+the token with `{$OLLAMA_PROXY_TOKEN}`, substituted at parse time from an
+ExternalSecret-backed env var. Keep it that way. **The token has to arrive
+through the environment**, because this repo is public — any design that puts it
+in a router rule, an Ingress annotation or a ConfigMap is disqualified on that
+alone, which rules out matching the `Authorization` header in a proxy's routing
+config.
+
+Alternatives already ruled out, so they need no second look: Traefik and the
+Caddy ingress controller both lack a bearer-auth mechanism (Traefik's auth
+middlewares are Basic, Digest and Forward; the Caddy controller has five
+annotations, none about auth), and a delegated auth service is strictly more
+moving parts than the proxy it would sit beside. The community Caddy charts are
+0.x and single-maintainer, and every value they set is one this overrides.
+
+The Caddyfile is a `configMapGenerator`, so its content hash rolls the
+Deployment when the config changes. The token is read once at startup, so
+rotating it in Vault needs a pod restart.
+
 ### Images
 
 Reference images by **FQDN**. **Never** use Bitnami images.

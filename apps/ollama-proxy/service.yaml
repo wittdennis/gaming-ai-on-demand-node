@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-proxy
+  namespace: ai-platform
+  labels:
+    app.kubernetes.io/name: ollama-proxy
+spec:
+  # servicelb binds the node's own addresses, which on a single-node cluster is the LAN
+  # address. Port 11434 keeps the endpoint drop-in compatible with a direct Ollama.
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: ollama-proxy
+  ports:
+    - name: http
+      port: 11434
+      targetPort: http
+      protocol: TCP
