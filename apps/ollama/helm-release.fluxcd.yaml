@@ -42,7 +42,6 @@ spec:
       models:
         pull:
           - qwen3-coder:30b
-
           - qwen3.6:27b
 
     extraEnv:
