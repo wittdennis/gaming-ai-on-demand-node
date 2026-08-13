@@ -146,12 +146,20 @@ Reference images by **FQDN**. **Never** use Bitnami images.
 
 ## Ansible
 
-`ansible/` owns day-0: k3s, `flux install` and the two sync objects, the deploy
-key, the Vault token Secret, `nftables`, the gamemode preempt hook, WoL and idle
-auto-suspend. Flux owns day-2.
+`ansible/` owns day-0: k3s, `flux install` and the two sync objects, the Vault
+token Secret, `nftables`, the gamemode preempt hook, WoL and idle auto-suspend.
+Flux owns day-2.
 
 - Inventory is a single host, `localhost` — the playbooks run **on otter**.
   `ansible.cfg` sets it as the default inventory.
+- **k3s upgrades are Ansible's**, via `k3s_upgrade.yml`. Renovate bumps
+  `k3s_version` in `group_vars`, then that playbook applies it. Keeping the
+  version authoritative there is what stops a rebuild from installing something
+  older than the cluster that was running.
+- An in-cluster upgrade controller was considered and rejected: its `Plan`s run
+  privileged pods that replace the k3s binary on the host, so anything with
+  cluster access gets root on the machine. One command on a machine you sit in
+  front of is worth more than that.
 - `hack/setup-venv.sh` creates `.venv` and installs Galaxy content into the
   gitignored `.ansible/` cache.
 - Secret material in `group_vars` is `ansible-vault`-encrypted in place

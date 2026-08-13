@@ -1,0 +1,5 @@
+# code: language=ansible
+---
+- name: Upgrade k3s
+  tags: [k3s]
+  ansible.builtin.import_playbook: k3s.orchestration.upgrade
