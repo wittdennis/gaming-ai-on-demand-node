@@ -43,6 +43,17 @@ proxy is what listens, on port 11434 over HTTPS.
 
 ## How it bootstraps
 
+First, set up the checkout:
+
+```bash
+hack/setup-venv.sh     # .venv plus the Galaxy content, into a gitignored cache
+cp .env.example .env   # fill in OLLAMA_TOKEN
+direnv allow           # loads .env and activates .venv on entry
+```
+
+[direnv](https://direnv.net/) is optional. Without it, activate `.venv` yourself and
+export whatever `.env.example` documents.
+
 Ansible owns day-0 and the host; Flux owns everything after that. Run from the
 machine itself, against a checkout:
 
