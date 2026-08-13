@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    # Both exporters here read the host: node_exporter mounts /proc, /sys and / and runs in the
+    # host network and PID namespaces, and the GPU exporter opens the render devices.
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn: privileged
+    pod-security.kubernetes.io/audit: privileged

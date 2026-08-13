@@ -1,0 +1,9 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: device-metrics-exporter
+  namespace: monitoring
+spec:
+  interval: 10m
+  url: https://rocm.github.io/device-metrics-exporter

@@ -8,4 +8,6 @@ resources:
   - rbac
   - node-feature-discovery
   - amd-device-plugin
+  - node-exporter
+  - amd-metrics-exporter
   - mogenius-operator
