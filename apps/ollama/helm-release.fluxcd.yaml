@@ -56,10 +56,12 @@ spec:
       # Callers wanting more can raise num_ctx per request and take that trade knowingly.
       - name: OLLAMA_CONTEXT_LENGTH
         value: "32768"
-      # Weights leave VRAM shortly after idle, so a game launched later is not fighting for
-      # memory that nothing is using.
+      # Long, because gaming no longer depends on it: the gamemode hook stops the cluster
+      # outright and frees the card that way. What is left for this timer is releasing VRAM
+      # over a genuinely idle stretch, and an hour keeps a model resident across a working
+      # day rather than paying an 18 GB reload after every pause for thought.
       - name: OLLAMA_KEEP_ALIVE
-        value: "5m"
+        value: "1h"
       - name: OLLAMA_FLASH_ATTENTION
         value: "1"
       - name: HOME

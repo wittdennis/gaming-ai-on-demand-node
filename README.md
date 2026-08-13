@@ -105,7 +105,13 @@ reach, which is worth far more to an attacker than one leaf certificate.
 ansible-playbook ansible/playbooks/k3s_upgrade.yml   # after a k3s_version bump
 hack/gpu-mode.sh headless                            # drop the desktop, free its VRAM
 hack/gpu-mode.sh desktop                             # and back
+OLLAMA_TOKEN=... hack/unload-models.sh               # free the card, cluster stays up
 ```
+
+A model stays resident for an hour after its last request, which is deliberate: the
+gamemode hook is what clears the card for a game, so the timer only has to cover a
+genuinely idle stretch. GPU work that is **not** a game never reaches that hook, so
+`unload-models.sh` is the manual equivalent.
 
 Upgrades are Ansible's, not the cluster's. `k3s_version` in `group_vars` stays
 authoritative, so a rebuild can never install something older than what was
