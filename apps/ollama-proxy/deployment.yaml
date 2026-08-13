@@ -26,8 +26,8 @@ spec:
         - name: caddy
           image: docker.io/library/caddy:2.11.4-alpine # renovate
           ports:
-            - name: http
-              containerPort: 8080
+            - name: https
+              containerPort: 8443
               protocol: TCP
           env:
             # Read once at startup, since Caddy substitutes it while parsing: rotating the
@@ -47,6 +47,9 @@ spec:
             - name: caddyfile
               mountPath: /etc/caddy
               readOnly: true
+            - name: tls
+              mountPath: /certs
+              readOnly: true
             - name: data
               mountPath: /data
             - name: config
@@ -54,13 +57,15 @@ spec:
           livenessProbe:
             httpGet:
               path: /healthz
-              port: http
+              port: https
+              scheme: HTTPS
             initialDelaySeconds: 5
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /healthz
-              port: http
+              port: https
+              scheme: HTTPS
             initialDelaySeconds: 2
             periodSeconds: 10
           securityContext:
@@ -81,6 +86,9 @@ spec:
         - name: caddyfile
           configMap:
             name: ollama-proxy-caddyfile
+        - name: tls
+          secret:
+            secretName: ollama-proxy-tls
         - name: data
           emptyDir: {}
         - name: config

@@ -4,6 +4,7 @@ kind: Kustomization
 buildMetadata: [originAnnotations]
 resources:
   - external-secret.yaml
+  - tls-external-secret.yaml
   - deployment.yaml
   - service.yaml
 

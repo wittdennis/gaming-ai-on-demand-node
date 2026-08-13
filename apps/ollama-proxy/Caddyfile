@@ -1,9 +1,12 @@
 {
 	admin off
+	# Certificates arrive from Vault, so Caddy neither requests nor renews any.
 	auto_https off
 }
 
-:8080 {
+:8443 {
+	tls /certs/tls.crt /certs/tls.key
+
 	log
 
 	# route runs these in written order; bare handlers would be reordered by directive type.

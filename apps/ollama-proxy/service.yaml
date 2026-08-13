@@ -8,12 +8,12 @@ metadata:
     app.kubernetes.io/name: ollama-proxy
 spec:
   # servicelb binds the node's own addresses, which on a single-node cluster is the LAN
-  # address. Port 11434 keeps the endpoint drop-in compatible with a direct Ollama.
+  # address. Port 11434 keeps the path familiar; the scheme is https.
   type: LoadBalancer
   selector:
     app.kubernetes.io/name: ollama-proxy
   ports:
-    - name: http
+    - name: https
       port: 11434
-      targetPort: http
+      targetPort: https
       protocol: TCP

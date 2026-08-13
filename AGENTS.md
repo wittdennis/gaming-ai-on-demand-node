@@ -159,6 +159,20 @@ The Caddyfile is a `configMapGenerator`, so its content hash rolls the
 Deployment when the config changes. The token is read once at startup, so
 rotating it in Vault needs a pod restart.
 
+**The endpoint is HTTPS.** The token authorises; TLS is what stops it being
+readable in transit, and a bearer token is replayable for as long as it is valid.
+Prompts and completions carry source code, so the payload matters as much as the
+credential. Network segmentation is not a substitute — the segment this machine
+sits on is where workstations live, which is where a compromise realistically
+starts.
+
+**Certificates are issued elsewhere and arrive through Vault**, as
+`/ollama-proxy/tls`, like any other secret. Do not add a certificate issuer here:
+that means DNS-provider credentials on this machine, and losing zone-wide DNS
+control is far worse than losing one leaf certificate. Caddy reads the files at
+startup, so a renewal is picked up on the next pod start, which this machine does
+most days anyway.
+
 ### Images
 
 Reference images by **FQDN**. **Never** use Bitnami images.
