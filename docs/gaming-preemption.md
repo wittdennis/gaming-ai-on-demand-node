@@ -5,6 +5,90 @@ the GPU while nobody is using it, and it has to get out of the way completely th
 moment a game starts. "Out of the way" means the VRAM is actually returned, not
 that the workload is merely idle.
 
+## Setting it up
+
+Nothing happens automatically. A game has to be launched in a way that registers
+it with `gamemoded`, and every launcher does that differently. A game started
+without it runs normally and the cluster keeps the GPU, which is the failure mode
+to recognise: the game is simply slow, and nothing reports why.
+
+### Steam, per game
+
+Right-click the game, **Properties → General → Launch Options**, and set:
+
+```
+gamemoderun %command%
+```
+
+`%command%` is where Steam substitutes the actual executable, so it has to stay.
+This is the recommended option: preemption applies exactly while a game runs.
+
+### Steam, the whole client
+
+Steam has no global launch-options field. The equivalent is starting Steam itself
+under `gamemoderun`, which works because `gamemoderun` sets `LD_PRELOAD` and child
+processes inherit it, so every game Steam launches registers too.
+
+Copy the launcher so a package update does not overwrite it, then edit the copy:
+
+```bash
+cp /usr/share/applications/steam.desktop ~/.local/share/applications/
+sed -i 's|^Exec=/usr/bin/steam|Exec=gamemoderun /usr/bin/steam|' \
+  ~/.local/share/applications/steam.desktop
+update-desktop-database ~/.local/share/applications
+```
+
+**Think before using this one here.** GameMode is active for as long as Steam is
+open, not just while a game runs, so the cluster stays stopped while you browse
+the store or leave Steam running in the background. Per-game launch options are
+the better fit for this machine.
+
+### Heroic
+
+Per game: select the game, **Settings → Game Settings**, enable **Use GameMode**.
+
+For everything at once: **Settings → Game Defaults**, same toggle. New games pick
+up the default, existing ones keep whatever they were set to.
+
+### Lutris
+
+Per game: right-click the game, **Configure → System options**, enable
+**Enable Feral GameMode**.
+
+For everything at once: **Preferences → System options**, same toggle. Per-game
+settings override it.
+
+Lutris hides System options behind an **Advanced** switch in some versions; turn
+that on if the section looks short.
+
+### Anything else
+
+Any launcher works if it can prefix the command. Otherwise run it by hand:
+
+```bash
+gamemoderun ./some-game
+```
+
+### Checking it took effect
+
+Start a game, then from another terminal or over ssh:
+
+```bash
+gamemoded -s                        # expect "gamemode is active"
+systemctl is-active k3s             # expect "inactive" while the game runs
+rocm-smi --showmeminfo vram --csv   # expect desktop-only usage
+```
+
+If the first says active and the second does not say inactive, the hook is not
+firing: see [Gotchas](#gotchas), starting with `~/.config/gamemode.ini`.
+
+If the first says nothing is active, the launcher is not registering the game, so
+the launch option or toggle above has not taken. `pacman -Q gamemode lib32-gamemode`
+confirms it is installed at all.
+
+The honest test is to launch a game with a model resident and watch VRAM fall to
+the desktop baseline, then quit and confirm the cluster comes back on its own.
+
 ## What happens
 
 1. A game is launched through `gamemoderun`, which asks `gamemoded` to enter
@@ -73,28 +157,15 @@ Two settings matter here, both in `[custom]`:
 `[custom]` block overrides this hook entirely and nothing reports that it did.
 Check it before debugging anything else.
 
-**Each game needs the launch option.** In Steam that is `gamemoderun %command%`
-per title. Other launchers have a GameMode toggle that can be set as a default.
-A game launched without it never registers, so the cluster keeps running and the
-GPU stays occupied.
+**Each game needs the launch option or toggle**, per
+[Setting it up](#setting-it-up). A game launched without it never registers, so
+the cluster keeps running and the GPU stays occupied.
 
 **The hook does not block the game.** The scripts run alongside the launch rather
 than before it, so a game can begin allocating VRAM while the cluster is still
 shutting down. If that becomes a problem, the lever is a shorter
 `terminationGracePeriodSeconds` on the inference workload so its container exits
 promptly instead of draining.
-
-## Verifying
-
-```bash
-pacman -Q gamemode lib32-gamemode      # installed at all
-gamemoded -s                           # daemon answers, D-Bus activation works
-systemctl is-active k3s                # expect inactive during a game
-rocm-smi --showmeminfo vram --csv      # expect desktop-only usage during a game
-```
-
-The honest test is to launch a game with a model resident and watch VRAM fall to
-the desktop baseline, then quit and confirm the cluster comes back on its own.
 
 ## Files
 
