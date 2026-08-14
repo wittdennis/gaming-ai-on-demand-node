@@ -28,7 +28,12 @@ vram_mib() {
 }
 
 status() {
-  echo "active target : $(systemctl get-default) (default), $(systemctl is-active graphical.target) graphical"
+  local default_mode current_mode
+  default_mode=$([ "$(systemctl get-default)" = graphical.target ] && echo desktop || echo headless)
+  current_mode=$(systemctl is-active --quiet graphical.target && echo desktop || echo headless)
+
+  echo "current mode  : $current_mode"
+  echo "default mode  : $default_mode (on boot)"
   echo "VRAM in use   : $(vram_mib) MiB"
 }
 
