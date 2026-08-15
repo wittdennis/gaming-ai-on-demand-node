@@ -2,10 +2,20 @@
 # Hands the GPU back to the game. Invoked by gamemode when a game starts.
 set -eu
 
+# Cordon and drain before the hard stop below: a drained pod is deleted through the API
+# server and comes back clean, a pod only found by killall is left behind as Unknown until
+# something notices.
+NODE="$(k3s kubectl get nodes -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+if [ -n "${NODE}" ]; then
+	k3s kubectl cordon "${NODE}" || true
+	k3s kubectl drain "${NODE}" --ignore-daemonsets --delete-emptydir-data --force --timeout=30s || true
+fi
+
 systemctl stop {{ gaming_preempt_service }} || true
 
 # Stopping the supervisor does not reap running containers, and a container holding the GPU
-# keeps its VRAM. Killing them is the part that frees the card.
+# keeps its VRAM. Killing them is the part that frees the card, and the fallback for whatever
+# the drain above did not clear in time.
 if [ -x {{ gaming_preempt_killall }} ]; then
 	{{ gaming_preempt_killall }}
 fi

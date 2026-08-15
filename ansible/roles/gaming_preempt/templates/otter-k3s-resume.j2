@@ -4,3 +4,16 @@
 set -eu
 
 systemctl start {{ gaming_preempt_service }}
+
+# The cordon from pause is a field on the Node object, so it survives in the datastore across
+# the restart; nothing schedules again until it is lifted. The API server takes a few seconds
+# to come back, hence the poll.
+NODE=""
+for _ in $(seq 1 30); do
+	NODE="$(k3s kubectl get nodes -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+	[ -n "${NODE}" ] && break
+	sleep 1
+done
+if [ -n "${NODE}" ]; then
+	k3s kubectl uncordon "${NODE}" || true
+fi

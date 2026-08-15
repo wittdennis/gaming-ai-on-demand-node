@@ -35,6 +35,9 @@ server_config_yaml: |
   kube-scheduler-arg:
     - "bind-address=0.0.0.0"
   etcd-expose-metrics: true
+  kubelet-arg:
+    - "shutdown-grace-period=45s"
+    - "shutdown-grace-period-critical-pods=15s"
 
 # Optional vars
 # k3s_server_location: /var/lib/rancher/k3s

@@ -11,4 +11,5 @@ gaming_preempt_packages:
 # keeps the GPU allocated; this is what actually tears them down.
 gaming_preempt_killall: /usr/local/bin/k3s-killall.sh
 gaming_preempt_bin_dir: /usr/local/bin
-gaming_preempt_script_timeout: 60
+
+gaming_preempt_script_timeout: 90
