@@ -43,6 +43,7 @@ spec:
         pull:
           - qwen3-coder:30b
           - qwen3.6:27b
+          - qwen3.8:27b
 
     extraEnv:
       # The 7900 XTX by KFD unique id, so it survives a reordering of device indices. The iGPU
