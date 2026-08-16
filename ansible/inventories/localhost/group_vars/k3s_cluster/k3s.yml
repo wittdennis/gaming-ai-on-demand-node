@@ -14,7 +14,11 @@ api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups
 extra_server_args: ""
 extra_agent_args: ""
 api_port: 6443
-user_kubectl: true
+# Off: the role writes this straight to ~{{ ansible_user }}/.kube/config, which on a local
+# connection is the real ~/.kube/config - clobbering the curated multi-cluster one merged via
+# kubeconfig.yml's kubeconfig_path (~/.kube/localhost/config). ansible_user is also unset for
+# local connections, so this fails outright.
+user_kubectl: false
 server_config_yaml: |
   tls-san:
     - "k8s.otter.derwitt.site"
