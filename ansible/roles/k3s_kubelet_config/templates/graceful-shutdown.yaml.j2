@@ -1,0 +1,4 @@
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+shutdownGracePeriod: {{ k3s_kubelet_shutdown_grace_period }}
+shutdownGracePeriodCriticalPods: {{ k3s_kubelet_shutdown_grace_period_critical_pods }}

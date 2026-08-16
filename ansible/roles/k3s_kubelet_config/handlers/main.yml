@@ -1,0 +1,9 @@
+---
+# Skipped when k3s is not installed yet: this role runs before the k3s install play, so the
+# very first bootstrap has nothing to restart and the drop-in is simply picked up on first start.
+- name: Restart k3s for kubelet config
+  become: true
+  when: ansible_facts.services['k3s.service'] is defined
+  ansible.builtin.service:
+    name: k3s
+    state: restarted

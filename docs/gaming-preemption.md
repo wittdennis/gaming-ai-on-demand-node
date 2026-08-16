@@ -122,10 +122,12 @@ schedule again without it.
 This only covers the gamemode path. A plain shutdown or reboot stops `k3s`
 without ever calling these scripts (the stock `k3s.service` unit runs
 `k3s-killall.sh` from `ExecStopPost` regardless of why it stopped), which is
-why `kubelet-arg: shutdown-grace-period` is also set in
-`ansible/inventories/localhost/group_vars/k3s_cluster/k3s.yml` — it lets
+why the `k3s_kubelet_config` role sets `shutdownGracePeriod` and
+`shutdownGracePeriodCriticalPods` via a `kubelet.conf.d` drop-in — it lets
 kubelet drain pods itself during a real power-off, via the systemd-logind
-inhibitor, before `k3s` is torn down.
+inhibitor, before `k3s` is torn down. These are `KubeletConfiguration` fields
+rather than CLI flags, so they cannot be set through `kubelet-arg` in
+`k3s.yml`.
 
 `gamemoded` reference-counts its clients: `start` fires when the first game
 registers and `end` when the last one exits, so two games in a row do not stop
