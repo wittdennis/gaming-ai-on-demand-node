@@ -6,6 +6,10 @@ metadata:
   namespace: ai-platform
 spec:
   interval: 1h
+  # The postStart hook pulls every configured model before the container counts as started,
+  # which readiness waits on. A first-time pull of a new multi-GB model outruns Helm's 5m
+  # default wait, so the controller times out and rolls back mid-download every time.
+  timeout: 30m
   chart:
     spec:
       chart: ollama
