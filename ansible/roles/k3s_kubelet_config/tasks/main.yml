@@ -4,7 +4,7 @@
 - name: Create kubelet config drop-in directory
   become: true
   ansible.builtin.file:
-    path: "{{ k3s_kubelet_conf_dir }}"
+    path: "{{ k3s_kubelet_config_dir }}"
     state: directory
     mode: "0755"
 
@@ -12,6 +12,6 @@
   become: true
   ansible.builtin.template:
     src: graceful-shutdown.yaml.j2
-    dest: "{{ k3s_kubelet_conf_dir }}/graceful-shutdown.yaml"
+    dest: "{{ k3s_kubelet_config_dir }}/graceful-shutdown.yaml"
     mode: "0644"
   notify: Restart k3s for kubelet config

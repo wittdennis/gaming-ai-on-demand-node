@@ -1,7 +1,7 @@
 ---
-k3s_kubelet_conf_dir: /var/lib/rancher/k3s/agent/etc/kubelet.conf.d
+k3s_kubelet_config_dir: /var/lib/rancher/k3s/agent/etc/kubelet.conf.d
 
 # KubeletConfiguration fields, not CLI flags: --shutdown-grace-period* was removed from
 # kubelet and only exists as config now, so it cannot go through kubelet-arg.
-k3s_kubelet_shutdown_grace_period: 45s
-k3s_kubelet_shutdown_grace_period_critical_pods: 15s
+k3s_kubelet_config_shutdown_grace_period: 45s
+k3s_kubelet_config_shutdown_grace_period_critical_pods: 15s
