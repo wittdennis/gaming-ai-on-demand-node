@@ -8,6 +8,7 @@
         "ghcr.io/mogenius/helm-charts/mogenius-operator-dev"
       ],
       "versioning": "semver",
+      "automerge": true,
       "ignoreUnstable": false,
       "allowedVersions": "/^\\d+\\.\\d+\\.\\d+-develop\\.\\d+$/"
     }
