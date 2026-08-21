@@ -1,0 +1,104 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: mogenius-operator-dev
+  namespace: mogenius-operator-dev
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: mogenius-operator-dev
+      version: 2.29.0-develop.564
+      sourceRef:
+        kind: HelmRepository
+        name: mogenius
+        namespace: mogenius-operator-dev
+  dependsOn:
+    - name: mogenius-operator-dev-valkey
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  # The chart renders three statically named aggregated ClusterRoles
+  # (mogenius-admin/editor/viewer) that the prod release also owns. Unlike
+  # ArgoCD's ignoreDifferences, Helm itself refuses to adopt a resource stamped
+  # with another release's ownership metadata, so this release must never
+  # render them at all; prod's copies are left in place.
+  postRenderers:
+    - kustomize:
+        patches:
+          - patch: |
+              $patch: delete
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRole
+              metadata:
+                name: mogenius-admin
+          - patch: |
+              $patch: delete
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRole
+              metadata:
+                name: mogenius-editor
+          - patch: |
+              $patch: delete
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRole
+              metadata:
+                name: mogenius-viewer
+  values:
+    # Upgrades come from Renovate against the pinned chart version, not from the operator
+    # upgrading itself out from under Flux.
+    features:
+      autoUpgrade:
+        enabled: false
+
+    # Every cluster-scoped resource except the three aggregated ClusterRoles
+    # above is named from this, so it has to differ from the prod release.
+    fullnameOverride: mogenius-operator-dev
+
+    valkey:
+      enabled: false
+    externalKeyValueStore:
+      enabled: true
+      host: mogenius-operator-dev-valkey.mogenius-operator-dev.svc.cluster.local
+      username: default
+      existingSecret:
+        name: mogenius-operator-dev-valkey-credentials
+        key: default-password
+
+    global:
+      cluster_name: "Otter Dev"
+      apiKeySecret:
+        secretName: mogenius-operator-dev-api-secret
+        secretKey: api-key
+    envVars:
+      MO_API_SERVER: "wss://k8s-ws.dev.mogenius.com/ws"
+      MO_EVENT_SERVER: "wss://k8s-dispatcher.dev.mogenius.com/ws"
+
+    # No Prometheus operator on this cluster.
+    metrics:
+      enabled: false
+
+    podSecurityContext:
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+      seccompProfile:
+        type: RuntimeDefault
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
+      seccompProfile:
+        type: RuntimeDefault

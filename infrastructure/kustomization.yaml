@@ -11,3 +11,4 @@ resources:
   - node-exporter
   - amd-metrics-exporter
   - mogenius-operator
+  - mogenius-operator-dev

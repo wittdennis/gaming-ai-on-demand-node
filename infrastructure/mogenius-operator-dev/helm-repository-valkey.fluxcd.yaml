@@ -1,0 +1,10 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: valkey
+  namespace: mogenius-operator-dev
+spec:
+  type: oci
+  interval: 10m
+  url: oci://ghcr.io/valkey-io/valkey-helm

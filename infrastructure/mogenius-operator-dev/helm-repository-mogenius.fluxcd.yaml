@@ -1,0 +1,10 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: mogenius
+  namespace: mogenius-operator-dev
+spec:
+  type: oci
+  interval: 10m
+  url: oci://ghcr.io/mogenius/helm-charts

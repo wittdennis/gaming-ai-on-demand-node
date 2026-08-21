@@ -1,4 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>renovate/config"]
+  "extends": ["local>renovate/config"],
+  "packageRules": [
+    {
+      "description": "The dev release tracks mogenius' `develop` prerelease train, which is unstable by definition. `allowedVersions` keeps it on that train so a stable `x.y.z` (which sorts above any of its prereleases) never gets proposed here",
+      "matchPackageNames": [
+        "ghcr.io/mogenius/helm-charts/mogenius-operator-dev"
+      ],
+      "versioning": "semver",
+      "ignoreUnstable": false,
+      "allowedVersions": "/^\\d+\\.\\d+\\.\\d+-develop\\.\\d+$/"
+    }
+  ]
 }
