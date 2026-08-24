@@ -1,0 +1,19 @@
+---
+kind: PlatformConfig
+metadata:
+  name: "ai-platform-dev"
+spec:
+  gitOps:
+    repositories:
+      - name: jotunheim
+        url: https://git.derwitt.site/homelab/jotunheim.git
+        revision: main
+        write:
+          enabled: true
+          mode: PullRequest
+          secretRef:
+            externalSecret:
+              vault: vault-backend-otter
+              path: /mogenius-operator-dev/gitops
+              key: jotunheim-write-token
+          provider: GITEA

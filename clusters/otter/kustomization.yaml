@@ -6,4 +6,5 @@ resources:
   - external-secrets.yaml
   - external-secrets-stores.yaml
   - infrastructure.yaml
+  - platform-config-dev.yaml
   - apps.yaml
