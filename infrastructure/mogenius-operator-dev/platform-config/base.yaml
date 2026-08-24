@@ -15,6 +15,6 @@ spec:
           secretRef:
             externalSecret:
               vault: vault-backend-otter
-              path: /mogenius-operator-dev/gitops
+              path: /mogenius-operator-dev/gitops/jotunheim-write-token
               key: jotunheim-write-token
           provider: GITEA
