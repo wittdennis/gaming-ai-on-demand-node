@@ -1,4 +1,5 @@
 ---
+apiVersion: mogenius.com/v1alpha1
 kind: PlatformConfig
 metadata:
   name: "ai-platform-dev"
@@ -10,7 +11,7 @@ spec:
         revision: main
         write:
           enabled: true
-          mode: PullRequest
+          mode: PULL_REQUEST
           secretRef:
             externalSecret:
               vault: vault-backend-otter
