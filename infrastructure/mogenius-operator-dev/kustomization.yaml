@@ -10,3 +10,4 @@ resources:
   - helm-repository-valkey.fluxcd.yaml
   - helm-release-valkey.fluxcd.yaml
   - helm-release-operator.fluxcd.yaml
+  - gitops-write-token.yaml

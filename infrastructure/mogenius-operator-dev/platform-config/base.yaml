@@ -13,8 +13,7 @@ spec:
           enabled: true
           mode: PULL_REQUEST
           secretRef:
-            externalSecret:
-              vault: vault-backend-otter
-              path: /mogenius-operator-dev/gitops/jotunheim-write-token
+            secret:
+              name: gitops-write-token
               key: jotunheim-write-token
           provider: GITEA
