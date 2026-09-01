@@ -25,7 +25,7 @@ spec:
       registry: "docker.io"
       repository: valkey/valkey
       pullPolicy: IfNotPresent
-      tag: "9.1.1" # renovate: datasource=docker depName=valkey/valkey versioning=docker
+      tag: "9.1.2" # renovate: datasource=docker depName=valkey/valkey versioning=docker
     auth:
       enabled: true
       usersExistingSecret: mogenius-operator-valkey-credentials
