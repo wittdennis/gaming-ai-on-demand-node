@@ -1,4 +1,4 @@
-ansible-core==2.21.3
+ansible-core==2.21.4
 packaging==26.3
 pytz==2026.3.post1
 
