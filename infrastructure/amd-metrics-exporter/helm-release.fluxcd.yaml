@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: device-metrics-exporter-charts
-      version: v1.5.1
+      version: v1.5.2
       sourceRef:
         kind: HelmRepository
         name: device-metrics-exporter
