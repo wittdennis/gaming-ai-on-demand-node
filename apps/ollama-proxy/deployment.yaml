@@ -24,7 +24,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: caddy
-          image: docker.io/library/caddy:2.11.6-alpine # renovate
+          image: docker.io/library/caddy:2.11.7-alpine # renovate
           ports:
             - name: https
               containerPort: 8443
