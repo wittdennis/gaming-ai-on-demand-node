@@ -10,4 +10,4 @@ ttp==0.10.1
 xmltodict==1.0.4
 
 # kubernetes.core collection's client
-kubernetes==36.0.3
+kubernetes==37.0.0
