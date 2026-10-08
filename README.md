@@ -136,8 +136,8 @@ which also covers why stopping the service alone is not enough.
 To measure the GPU rather than guess:
 
 ```bash
-OLLAMA_TOKEN=... hack/bench-ollama.sh qwen3-coder:30b   # throughput and VRAM
-OLLAMA_TOKEN=... hack/bench-context.sh qwen3-coder:30b  # where a model stops fitting
+OLLAMA_TOKEN=... hack/bench-ollama.sh qwen3.8:27b   # throughput and VRAM
+OLLAMA_TOKEN=... hack/bench-context.sh qwen3.8:27b  # where a model stops fitting
 ```
 
 Both drive inference through the endpoint and read the GPU with `rocm-smi`, which

@@ -3,7 +3,7 @@
 # reaches the gamemode hook: rendering, encoding, a game started without gamemoderun.
 #
 #   OLLAMA_TOKEN=... hack/unload-models.sh            # everything currently resident
-#   OLLAMA_TOKEN=... hack/unload-models.sh qwen3.6:27b
+#   OLLAMA_TOKEN=... hack/unload-models.sh qwen3.8:27b
 #
 # Models reload on the next request, so this costs a reload and nothing else.
 set -euo pipefail

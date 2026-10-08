@@ -3,8 +3,8 @@
 # load time, so a short prompt with a large num_ctx costs the same VRAM as a full one: the
 # question is answered without having to generate a huge prompt.
 #
-#   OLLAMA_TOKEN=... hack/bench-context.sh qwen3-coder:30b
-#   SSH_HOST=otter CTX_LIST="8192 32768 131072" OLLAMA_TOKEN=... hack/bench-context.sh qwen3.6:27b
+#   OLLAMA_TOKEN=... hack/bench-context.sh qwen3.8:27b
+#   SSH_HOST=otter CTX_LIST="8192 32768 131072" OLLAMA_TOKEN=... hack/bench-context.sh qwen3.8:27b
 #
 # Watch the "on GPU" column: the first value below 100% is the ceiling, and the tok/s beside it
 # shows what exceeding it costs.

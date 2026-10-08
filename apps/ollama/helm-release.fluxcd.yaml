@@ -45,9 +45,8 @@ spec:
         number: 2
       models:
         pull:
-          - qwen3-coder:30b
-          - qwen3.6:27b
           - qwen3.8:27b
+        clean: true
 
     extraEnv:
       # The 7900 XTX by KFD unique id, so it survives a reordering of device indices. The iGPU
@@ -56,11 +55,12 @@ spec:
       - name: ROCR_VISIBLE_DEVICES
         value: "GPU-0f8c49f6b81ea5b0"
       # Left unset, this is chosen from whatever VRAM happens to be free at load time, so the
-      # context would shrink silently on a day the desktop is holding more. 32k is the largest
-      # value both models keep entirely on the GPU at full speed; 64k costs a partial spill.
+      # context would shrink silently on a day the desktop is holding more. Ollama spills once
+      # model plus desktop exceeds about 23.3 GB. With q8_0 KV, qwen3.8 at 96k takes about
+      # 22.2 GB, leaving the desktop about 1 GB; 120k fits only with the desktop idle.
       # Callers wanting more can raise num_ctx per request and take that trade knowingly.
       - name: OLLAMA_CONTEXT_LENGTH
-        value: "32768"
+        value: "100000"
       # Long, because gaming no longer depends on it: the gamemode hook stops the cluster
       # outright and frees the card that way. What is left for this timer is releasing VRAM
       # over a genuinely idle stretch, and an hour keeps a model resident across a working

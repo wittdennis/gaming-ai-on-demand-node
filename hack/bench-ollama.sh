@@ -2,19 +2,19 @@
 # Measures throughput and VRAM for a set of models, and checks that VRAM is returned once
 # OLLAMA_KEEP_ALIVE expires. Output is a markdown table.
 #
-#   OLLAMA_TOKEN=... hack/bench-ollama.sh qwen3-coder:30b qwen2.5-coder:32b
+#   OLLAMA_TOKEN=... hack/bench-ollama.sh qwen3.8:27b
 #
 # Inference is driven over the endpoint, so this runs from anywhere. Whole-GPU readings come
 # from rocm-smi, which has to execute on the machine itself; set SSH_HOST to reach it from
 # elsewhere. Ollama's own per-model figure needs neither and is reported alongside, because it
 # answers a different question: how much of the model reached the GPU at all.
 #
-#   SSH_HOST=otter OLLAMA_TOKEN=... hack/bench-ollama.sh qwen3-coder:30b
+#   SSH_HOST=otter OLLAMA_TOKEN=... hack/bench-ollama.sh qwen3.8:27b
 set -euo pipefail
 
 if [ "$#" -eq 0 ]; then
   echo "usage: OLLAMA_TOKEN=... $0 <model> [model...]" >&2
-  echo "example: SSH_HOST=otter OLLAMA_TOKEN=... $0 qwen3-coder:30b qwen2.5-coder:32b" >&2
+  echo "example: SSH_HOST=otter OLLAMA_TOKEN=... $0 qwen3.8:27b" >&2
   exit 1
 fi
 
