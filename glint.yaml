@@ -14,7 +14,7 @@ discovery:
 
 render:
   helm:
-    kubernetes_version: "1.37.1" # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet extractVersion=^v(?<version>.+)$ versioning=semver
+    kubernetes_version: "1.37.2" # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet extractVersion=^v(?<version>.+)$ versioning=semver
     include_crds: true
   subprocess_fallback: false
 
