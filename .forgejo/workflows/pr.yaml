@@ -54,7 +54,7 @@ jobs:
       - uses: https://git.derwitt.site/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: lint
-        uses: https://git.derwitt.site/actions/glint@cd3deea01f61d5ca55e56849a432f4e1805f2270 # v0.2.9
+        uses: https://git.derwitt.site/actions/glint@be266b9ba5a3967480798afdddf04f10ece9b153 # v0.3.0
         with:
           format: text
           sarif-file: ""
