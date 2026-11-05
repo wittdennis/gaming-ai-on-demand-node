@@ -42,7 +42,7 @@ jobs:
         uses: https://git.derwitt.site/actions/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
 
       - name: lint
-        uses: https://git.derwitt.site/actions/ansible-lint@9bce2bfb8f4a984e6b13767bc0d6bf0a49492164 # v26.10.1
+        uses: https://git.derwitt.site/actions/ansible-lint@b74fb6f73d234bf92672372cb1c10768e4018d16 # v26.11.0
         with:
           requirements_file: requirements.yml
 
