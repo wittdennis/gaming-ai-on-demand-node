@@ -61,9 +61,7 @@ machine itself, against a checkout:
 2. **`flux_bootstrap.yml`** runs `flux install` with three controllers, then
    applies a `GitRepository` and a root `Kustomization` for this repo. Explicitly
    not `flux bootstrap`, which commits back and would need a write credential.
-3. **`vault_token_bootstrap.yml`** puts the Vault token into the cluster. This is
-   the chicken-and-egg step: nothing in the cluster can fetch it yet.
-4. **`host.yml`** applies the firewall rules and the gaming preemption hook.
+3. **`host.yml`** applies the firewall rules and the gaming preemption hook.
 
 Flux takes over from there. Its Kustomizations are ordered with `dependsOn`:
 
@@ -104,7 +102,10 @@ belongs to it. Adding one is a directory plus a line in the parent
 No secret material is committed. Secrets are synced at runtime by
 [External Secrets Operator](https://external-secrets.io/) from HashiCorp Vault via
 the `vault-backend-otter` `ClusterSecretStore`, which reaches
-`https://vault.derwitt.site` with a read-only, path-scoped token.
+`https://vault.derwitt.site` through the `jwt-otter` auth mount. It presents a
+short-lived token of the `eso-otter` ServiceAccount, which Vault verifies against
+this cluster's pinned signing key and maps to a read-only, path-scoped role. No
+Vault credential is stored on the machine.
 
 Certificates are issued elsewhere and arrive the same way. No certificate issuer
 runs here: that would mean issuing credentials on the least trusted machine in
@@ -164,13 +165,15 @@ The loop above assumes a few things already exist. These are the manual
 prerequisites for a from-scratch rebuild:
 
 1. A CachyOS install with the GPU working, and a checkout of this repo on it.
-2. A read-only, path-scoped Vault token, set as `vault_otter_token` in
-   `group_vars/k3s_cluster/vault.yml` and `ansible-vault`-encrypted.
+2. After `k3s_bootstrap.yml`, the new cluster's ServiceAccount signing key
+   (`kubectl get --raw /openid/v1/jwks`, converted to PEM) pinned as the
+   validation key of Vault's `jwt-otter` auth mount. A fresh k3s install
+   generates a new key, and until it is pinned no secret syncs.
 3. The secrets the workloads read, under this cluster's Vault mount:
    `ollama-proxy/token`, `ollama-proxy/tls`, `mogenius-operator/api-key` and
    `mogenius-operator/valkey/credentials`.
 4. A reachable Vault, since the endpoint cannot serve without its token and
    certificate.
 
-Once those are in place, the four playbooks above bring the machine up and Flux
+Once those are in place, the three playbooks above bring the machine up and Flux
 reconciles the rest.

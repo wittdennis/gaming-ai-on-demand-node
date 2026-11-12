@@ -19,8 +19,12 @@ to anything from. Two rules follow, and both are load-bearing:
   one. Genuinely common bits get **copied** in — the cost (a fix elsewhere does
   not propagate) is accepted deliberately, because one clone has to be the
   complete description of the machine.
-- **Credentials are outbound-only and read-only.** This machine holds exactly one
-  credential: a read-only, path-scoped Vault token. This repo is public, so Flux
+- **Credentials are outbound-only and read-only.** This machine holds no stored
+  credential for Vault. External-secrets presents a short-lived ServiceAccount
+  token, which Vault verifies against this cluster's signing key, pinned on the
+  Vault side, and maps to a single read-only, path-scoped role. Root on the box
+  can mint such tokens, but Vault honours them for that one role and nothing
+  else. This repo is public, so Flux
   clones it anonymously over HTTPS and there is no git credential to steal — keep
   it that way rather than reintroducing a deploy key. Never add a write
   credential, a credential for another repository, or a kubeconfig for another
@@ -29,10 +33,9 @@ to anything from. Two rules follow, and both are load-bearing:
   else.
 
   It follows that **nothing secret may be committed here**, in either half. Every
-  secret comes from Vault at runtime; the Vault token itself is the one exception
-  and lives `ansible-vault`-encrypted in `group_vars`.
+  secret comes from Vault at runtime.
 
-  **Known exception: `mogenius-operator`.** It holds a second credential (its API
+  **Known exception: `mogenius-operator`.** It holds a credential (its API
   key) and maintains outbound websockets to `mogenius.com` that let the platform
   drive this cluster. That is remote control by an external service, which the
   paragraph above otherwise rules out. It is accepted deliberately: a machine that
@@ -125,8 +128,10 @@ device plugin DaemonSet is the expected exception; workload pods are not.
 
 Secrets come from Vault via external-secrets. The `ClusterSecretStore` targets
 `https://vault.derwitt.site`, which presents a publicly-trusted cert, so it needs
-no `caProvider`. The ESO Vault token Secret itself is bootstrapped by Ansible —
-chicken-and-egg, nothing in the cluster can fetch it yet.
+no `caProvider`. It authenticates through Vault's `jwt-otter` mount with the
+`eso-otter` ServiceAccount, so nothing has to be bootstrapped into the cluster.
+A fresh k3s install generates a new signing key, which has to be pinned on that
+mount again before any secret syncs.
 
 Availability here is deliberately lax — single replicas, no failover, prefer the
 frugal option over the resilient one. The machine is off most of the day by
@@ -179,8 +184,7 @@ Reference images by **FQDN**. **Never** use Bitnami images.
 
 ## Ansible
 
-`ansible/` owns day-0: k3s, `flux install` and the two sync objects, the Vault
-token Secret, `nftables`, the gamemode preempt hook, WoL and idle auto-suspend.
+`ansible/` owns day-0: k3s, `flux install` and the two sync objects, `nftables`, the gamemode preempt hook, WoL and idle auto-suspend.
 Flux owns day-2.
 
 - Inventory is a single host, `localhost` — the playbooks run **on otter**.

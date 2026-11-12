@@ -10,7 +10,12 @@ spec:
       path: "otter"
       version: "v2"
       auth:
-        tokenSecretRef:
-          name: "vault-otter-path-token"
-          namespace: external-secrets
-          key: "token"
+        jwt:
+          path: jwt-otter
+          role: eso-otter
+          kubernetesServiceAccountToken:
+            serviceAccountRef:
+              name: eso-otter
+              namespace: external-secrets
+              audiences:
+                - https://vault.derwitt.site
