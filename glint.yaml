@@ -19,6 +19,10 @@ render:
   subprocess_fallback: false
 
 rules:
+  catalogs:
+    cis:
+      enabled: true
+
   built_in:
     no_latest_tag:
       enabled: true
@@ -29,6 +33,26 @@ rules:
     deprecated_apis:
       enabled: true
       severity: error
+
+  # Node-level agents (GPU plugins, node metrics, feature discovery) require host access by design.
+  exceptions:
+    - rule: cis-5.2.2-privileged-containers
+      resources:
+        - {kind: DaemonSet, name: amd-metrics-exporter-amdgpu-metrics-exporter, reason: GPU metrics}
+    - rule: cis-5.2.3-host-pid
+      resources:
+        - {kind: DaemonSet, namespace: monitoring, name: node-exporter-prometheus-node-exporter, reason: node metrics}
+    - rule: cis-5.2.5-host-network
+      resources:
+        - {kind: DaemonSet, namespace: "mogenius-operator*", name: "mogenius-operator*-node-metrics", reason: node metrics}
+        - {kind: DaemonSet, namespace: monitoring, name: node-exporter-prometheus-node-exporter, reason: node metrics}
+    - rule: cis-5.2.12-hostpath-volumes
+      resources:
+        - {kind: DaemonSet, namespace: amd-device-plugin, name: "amd-gpu-*-daemonset", reason: GPU device plugin}
+        - {kind: DaemonSet, name: amd-metrics-exporter-amdgpu-metrics-exporter, reason: GPU metrics}
+        - {kind: DaemonSet, namespace: "mogenius-operator*", name: "mogenius-operator*-node-metrics", reason: node metrics}
+        - {kind: DaemonSet, namespace: monitoring, name: node-exporter-prometheus-node-exporter, reason: node metrics}
+        - {kind: DaemonSet, namespace: node-feature-discovery, name: node-feature-discovery-worker, reason: node feature detection}
 
   # Custom CEL rules — add your own policies here:
   custom: []
