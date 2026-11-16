@@ -35,6 +35,8 @@ spec:
           passwordKey: default-password
     replica:
       enabled: false
+    # No persistence, so no ReadWriteOnce volume to hand over between pods
+    deploymentStrategy: RollingUpdate
     securityContext:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
