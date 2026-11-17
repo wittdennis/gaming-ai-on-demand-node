@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: mogenius-operator-dev
-      version: 2.35.0-develop.871
+      version: 2.35.0-develop.872
       sourceRef:
         kind: HelmRepository
         name: mogenius
