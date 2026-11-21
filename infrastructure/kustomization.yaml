@@ -10,5 +10,3 @@ resources:
   - amd-device-plugin
   - node-exporter
   - amd-metrics-exporter
-  - mogenius-operator
-  - mogenius-operator-dev
