@@ -1,5 +1,5 @@
 ansible-core==2.22.0
-packaging==26.3
+packaging==26.4
 pytz==2026.6
 
 # ansible.utils collection's own declared Python deps (for the ipaddr filter and others)
